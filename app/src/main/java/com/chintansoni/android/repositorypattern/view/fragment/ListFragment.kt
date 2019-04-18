@@ -7,11 +7,10 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.chintansoni.android.repositorypattern.R
 import com.chintansoni.android.repositorypattern.databinding.ListFragmentBinding
-import com.chintansoni.android.repositorypattern.model.Resource
-import com.chintansoni.android.repositorypattern.util.setInfiniteScroll
-import com.chintansoni.android.repositorypattern.view.adapter.UserRecyclerAdapter
+import com.chintansoni.android.repositorypattern.view.adapter.UserRecyclerAdapter2
 import com.chintansoni.android.repositorypattern.viewmodel.ListViewModel
 import kotlinx.android.synthetic.main.list_fragment.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -38,7 +37,7 @@ class ListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initViews()
         listenToViewModel()
-        fetchUsers()
+//        fetchUsers()
     }
 
     private fun fetchUsers() {
@@ -46,7 +45,7 @@ class ListFragment : Fragment() {
     }
 
     private fun listenToViewModel() {
-        viewModel.userLiveData.observe(this, Observer { resource ->
+        /*viewModel.userLiveData.observe(this, Observer { resource ->
             srl_list.isRefreshing = false
             resource?.let {
                 when (it) {
@@ -60,31 +59,37 @@ class ListFragment : Fragment() {
                         userRecyclerAdapter.addLoader()
                 }
             }
+        })*/
+        viewModel.userPagedLiveData.observe(this, Observer { data ->
+            adapter.submitList(data)
         })
     }
 
-    private lateinit var userRecyclerAdapter: UserRecyclerAdapter
+    //    private lateinit var userRecyclerAdapter: UserRecyclerAdapter
+    private lateinit var adapter: UserRecyclerAdapter2
 
     private fun initViews() {
-        userRecyclerAdapter = UserRecyclerAdapter(requireContext())
-        rvUsers.adapter = userRecyclerAdapter
+//        userRecyclerAdapter = UserRecyclerAdapter(requireContext())
+//        rvUsers.adapter = userRecyclerAdapter
+        adapter = UserRecyclerAdapter2(requireContext())
+        rvUsers.adapter = adapter
 
         val animator = rvUsers.itemAnimator
-        if (animator is androidx.recyclerview.widget.SimpleItemAnimator) {
+        if (animator is SimpleItemAnimator) {
             animator.supportsChangeAnimations = false
         }
 
-        rvUsers.setInfiniteScroll {
-            if (!userRecyclerAdapter.isLoading()) {
-                post {
-                    userRecyclerAdapter.addLoader()
-                }
-                viewModel.getNextPageUsers()
-            }
-        }
+//        rvUsers.setInfiniteScroll {
+//            if (!userRecyclerAdapter.isLoading()) {
+//                post {
+//                    userRecyclerAdapter.addLoader()
+//                }
+//                viewModel.getNextPageUsers()
+//            }
+//        }
 
         srl_list.setOnRefreshListener {
-            viewModel.refreshUsers()
+            viewModel.refresh()
         }
     }
 }
